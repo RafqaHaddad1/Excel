@@ -1,0 +1,54 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Success</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <script>
+        $.noConflict();
+        jQuery(document).ready(function ($) {
+            $('.display').DataTable();
+        });
+
+    </script>
+</head>
+<body>
+    <h1>Hello</h1>
+    @if (ViewBag.ExcelDataBySheet != null && ViewBag.ExcelDataBySheet.Count > 0)
+    {
+        foreach (var kvp in ViewBag.ExcelDataBySheet)
+        {
+            <h2>@kvp.Key</h2>
+            <table id="excelDataTable_@kvp.Key" class="display">
+                <thead>
+                    <tr>
+                        @foreach (var header in kvp.Value[0])
+                        {
+                            <th>@header</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 1; i < kvp.Value.Count; i++)
+                    {
+                        <tr>
+                            @foreach (var cell in kvp.Value[i])
+                            {
+                                <td>@cell</td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <br />
+        }
+    }
+    else
+    {
+        <p>No data available</p>
+    }
+ 
+</body>
+</html>

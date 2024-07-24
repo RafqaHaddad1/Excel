@@ -1,54 +1,80 @@
-﻿<!DOCTYPE html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width" />
-    <title>Success</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
-    <script>
-        $.noConflict();
+﻿    @using Newtonsoft.Json
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta name="viewport" content="width=device-width" />
+        <title>Success</title>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+        <script>
         jQuery(document).ready(function ($) {
-            $('.display').DataTable();
+            var excelDataBySheet = @Html.Raw(ViewBag.ExcelDataBySheetJson);
+
+            console.log('Excel Data by Sheet:', excelDataBySheet);
+
+            if ($.isEmptyObject(excelDataBySheet)) {
+                $('#content').html('<p>No data available</p>');
+                return;
+            }
+
+            // Function to sanitize sheet names for use as IDs
+            function sanitizeId(id) {
+                return id.replace(/[^a-zA-Z0-9-_]/g, '_');
+            }
+
+            // Function to handle empty cells
+            function handleEmptyCell(cell) {
+                return cell === null || cell === undefined ? '' : cell;
+            }
+
+            // Function to check if a row is empty
+            function isRowEmpty(row) {
+                return row.every(cell => cell === null || cell === undefined || cell === '');
+            }
+
+            $.each(excelDataBySheet, function (sheetName, sheetData) {
+                var sanitizedSheetName = sanitizeId(sheetName);
+                console.log('Sheet Name:', sanitizedSheetName, 'Sheet Data:', sheetData);
+
+                var tableHtml = '<h2>' + sheetName + '</h2>';
+                tableHtml += '<table id="excelDataTable_' + sanitizedSheetName + '" class="display"><thead><tr>';
+
+                // Create table headers
+                if (sheetData.length > 0) {
+                    $.each(sheetData[0], function (index, header) {
+                        tableHtml += '<th>' + handleEmptyCell(header) + '</th>';
+                    });
+                } else {
+                    tableHtml += '<th>No Data found.</th>';
+                }
+
+                tableHtml += '</tr></thead><tbody>';
+
+                // Create table rows, excluding empty rows
+                for (var i = 1; i < sheetData.length; i++) {
+                    if (!isRowEmpty(sheetData[i])) {
+                        tableHtml += '<tr>';
+                        $.each(sheetData[i], function (index, cell) {
+                            tableHtml += '<td>' + handleEmptyCell(cell) + '</td>';
+                        });
+                        tableHtml += '</tr>';
+                    }
+                }
+
+                tableHtml += '</tbody></table><br />';
+                $('#content').append(tableHtml);
+
+                // Initialize DataTable for the current table
+                $('#excelDataTable_' + sanitizedSheetName).DataTable();
+            });
         });
 
-    </script>
-</head>
-<body>
-    <h1>Hello</h1>
-    @if (ViewBag.ExcelDataBySheet != null && ViewBag.ExcelDataBySheet.Count > 0)
-    {
-        foreach (var kvp in ViewBag.ExcelDataBySheet)
-        {
-            <h2>@kvp.Key</h2>
-            <table id="excelDataTable_@kvp.Key" class="display">
-                <thead>
-                    <tr>
-                        @foreach (var header in kvp.Value[0])
-                        {
-                            <th>@header</th>
-                        }
-                    </tr>
-                </thead>
-                <tbody>
-                    @for (int i = 1; i < kvp.Value.Count; i++)
-                    {
-                        <tr>
-                            @foreach (var cell in kvp.Value[i])
-                            {
-                                <td>@cell</td>
-                            }
-                        </tr>
-                    }
-                </tbody>
-            </table>
-            <br />
-        }
-    }
-    else
-    {
-        <p>No data available</p>
-    }
- 
-</body>
-</html>
+        </script>
+    </head>
+    <body>
+        <h1>Hello</h1>
+        <div id="content"></div>
+    </body>
+    </html>

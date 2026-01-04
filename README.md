@@ -28,7 +28,7 @@ A simple ASP.NET Core MVC project that lets you **upload an Excel file** (`.xls`
 
 ### Install & Run
 
-1. Clone the repository:
+Clone the repository:
    ```bash
    git clone https://github.com/RafqaHaddad1/Excel.git
-   cd Excel
+
